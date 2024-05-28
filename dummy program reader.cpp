@@ -72,6 +72,7 @@ int main()
             userOption = printAndGetOptions();
         }
     }
+    CloseHandle(hProcess);
     return EXIT_SUCCESS;
 }
 
