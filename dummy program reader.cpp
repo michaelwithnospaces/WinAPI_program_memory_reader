@@ -28,9 +28,7 @@ int main()
                 // read memory address varInt
                 uintptr_t memoryAddress;
                 std::cout << "Memory address of the integer to read (in hexadecimal): 0x";
-                // std::cin >> std::hex >> memoryAddress;  FIXME
-                std::cout << std::endl; // FIXME
-                memoryAddress = 0xA6F21CF4A4; // FIXME
+                std::cin >> std::hex >> memoryAddress; 
 
                 // dereference memory address varInt
                 readAndPrintInt((LPCVOID)memoryAddress, sizeof(int));
@@ -49,9 +47,7 @@ int main()
                 // following a pointer chain;
                 uintptr_t baseAddress;
                 std::cout << "Base address to follow (in hexadecimal): 0x";
-                //std::cin >> std::hex >> baseAddress; FIXME
-                std::cout << std::endl; // FIXME
-                baseAddress = 0xA6F21CF5E8; // FIXME
+                std::cin >> std::hex >> baseAddress;
                 std::vector<uintptr_t> ptrChainVector = { baseAddress, 0, 0, 0 };
                 uintptr_t finalAddress = followPointerChain(hProcess, ptrChainVector);
                 std::cout << "finalAddress = 0x" << std::hex << std::uppercase << finalAddress << std::endl;
@@ -63,9 +59,7 @@ int main()
             case 4: {
                 uintptr_t baseAddress;
                 std::cout << "Memory address of the string to read (in hexadecimal): 0x";
-                // std::cin >> std::hex >> baseAddress;  FIXME
-                std::cout << std::endl; // FIXME
-                baseAddress = 0xA6F21CF4C8; // FIXME
+                std::cin >> std::hex >> baseAddress;
 
                 readAndPrintString((LPCVOID)baseAddress, sizeof(std::string));
             }
@@ -101,9 +95,7 @@ void getHandleFromPid() {
 
     // read process ID
     std::cout << "Process ID: ";
-    // std::cin >> pid; FIXME
-    std::cout << std::endl; // FIXME
-    pid = 19760; // FIXME
+    std::cin >> pid;
 
     hProcess = OpenProcess(
         PROCESS_VM_READ, // desired access
