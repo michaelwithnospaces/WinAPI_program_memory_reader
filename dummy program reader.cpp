@@ -62,9 +62,9 @@ int main()
         }
 
         char quitCondition;
-        std::cout << "Quit? (Y/N): ";
+        std::cout << "Quit? (y/n): ";
         std::cin >> quitCondition;
-        if (quitCondition == 'Y') {
+        if (quitCondition == 'y') {
             continueProgram = false;
             terminateProgram();
         }
@@ -95,7 +95,7 @@ void getHandleFromPid() {
     pid = 19760; // FIXME
 
     hProcess = OpenProcess(
-        PROCESS_ALL_ACCESS, // desired access
+        PROCESS_VM_READ, // desired access
         FALSE, // child process' inherit handle
         pid // target PID
     );
