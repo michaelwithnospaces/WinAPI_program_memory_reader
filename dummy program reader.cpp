@@ -5,7 +5,7 @@
 int printAndGetOptions();
 void getHandleFromPid();
 int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize);
-void readAndPrintString(LPCVOID baseAddress, SIZE_T readSize);
+std::string readAndPrintString(LPCVOID baseAddress, SIZE_T readSize);
 void readAndPrintCharArray(LPCVOID baseAddress, SIZE_T readSize);
 void readProcessMemoryError(BOOL value);
 uintptr_t readAndPrintPtrAddress(uintptr_t addressBuffer);
@@ -60,9 +60,7 @@ int main()
             case 4: {
                 uintptr_t baseAddress;
                 std::cout << "Memory address of the string to read (in hexadecimal): 0x";
-                // std::cin >> std::hex >> baseAddress;
-                std::cout << std::endl; // DELME
-                baseAddress = 0x4A458FF4B8; // DELME
+                std::cin >> std::hex >> baseAddress;
 
                 readAndPrintString((LPCVOID)baseAddress, sizeof(std::string));
                 break;
@@ -104,21 +102,26 @@ int printAndGetOptions() {
 // reads PID and returns HANDLE
 void getHandleFromPid() {
     DWORD pid;
+    bool invalidPid = false;
 
-    // read process ID
-    std::cout << "Process ID: ";
-    std::cin >> pid;
+    while (!invalidPid) {
+        // read process ID
+        std::cout << "Process ID: ";
+        std::cin >> pid;
 
-    hProcess = OpenProcess(
-        PROCESS_VM_READ, // desired access
-        FALSE, // child process' inherit handle
-        pid // target PID
-    );
+        hProcess = OpenProcess(
+            PROCESS_VM_READ, // desired access
+            FALSE, // child process' inherit handle
+            pid // target PID
+        );
 
-    // handle OpenProcess errors
-    if (hProcess == NULL) {
-        std::cout << "OpenProcess failed. GetLastError = " << std::dec << GetLastError() << std::endl;
-        system("pause");
+        // handle OpenProcess errors
+        if (hProcess == NULL) {
+            std::cout << "OpenProcess failed. GetLastError = " << std::dec << GetLastError() << std::endl;
+        }
+        else {
+            break;
+        }
     }
 }
 
@@ -143,27 +146,37 @@ int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize) {
 }
 
 // reads memory of string and returns value (dereferences memory)
-void readAndPrintString(LPCVOID baseAddress, SIZE_T readSize) {
-    char stringBuffer[256] = { 0 };
+std::string readAndPrintString(LPCVOID baseAddress, SIZE_T readSize) {
+    std::string stringBuffer = "";
 
     BOOL stringResult = ReadProcessMemory(
         hProcess, // handle of process
         baseAddress, // base address to read
-        &stringBuffer, // store content buffer
+        &stringBuffer, // point to the beginning of the buffer
         readSize, // bytes to read from process
         lpNumberOfBytesRead // store bytes read buffer
     );
 
     readProcessMemoryError(stringResult);
 
+    // Print the retrieved string value
+    std::cout << "Value at address = " << stringBuffer << std::endl;
 
-    // print varInt value
-    std::cout << "Value at address = " << stringBuffer << std::endl << std::endl;
+    return stringBuffer;
 }
 
 // reads memory of character array(dereferences memory)
 void readAndPrintCharArray(LPCVOID baseAddress, SIZE_T readSize) {
     char bufferArray[128] = "";
+
+    // Ensure we do not read more data than the buffer can hold
+    // Calculate the safe read size to prevent buffer overflow
+    SIZE_T safeReadSize = sizeof(bufferArray) - 1; // Reserve 1 byte for the null terminator, ensuring safety
+
+    // Use the minimum of the requested readSize and the safeReadSize to ensure we do not overflow bufferArray
+    if (readSize > safeReadSize) {
+        readSize = safeReadSize;
+    }
 
     BOOL charArrayResult = ReadProcessMemory(
         hProcess, // handle of process
@@ -174,6 +187,9 @@ void readAndPrintCharArray(LPCVOID baseAddress, SIZE_T readSize) {
     );
 
     readProcessMemoryError(charArrayResult);
+
+    // Ensure the buffer is null-terminated
+    bufferArray[readSize] = '\0';  // This is safe because readSize <= safeReadSize
 
     // print bufferArray value
     std::cout << "Value at address = " << bufferArray << std::endl << std::endl;
