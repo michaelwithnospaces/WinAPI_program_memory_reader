@@ -4,7 +4,8 @@
 
 int printAndGetOptions();
 void getHandleFromPid();
-int readAndPrintVarInt(LPCVOID baseAddress, SIZE_T readSize);
+int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize);
+std::string readAndPrintString(LPCVOID baseAddress, SIZE_T readSize);
 void readProcessMemoryError(BOOL value);
 uintptr_t readAndPrintPtrAddress(uintptr_t addressBuffer);
 uintptr_t followPointerChain(HANDLE hProcess, const std::vector<uintptr_t>& addresses);
@@ -32,7 +33,7 @@ int main()
                 memoryAddress = 0xA6F21CF4A4; // FIXME
 
                 // dereference memory address varInt
-                readAndPrintVarInt((LPCVOID)memoryAddress, sizeof(int));
+                readAndPrintInt((LPCVOID)memoryAddress, sizeof(int));
                 break;
             }
             case 2: {
@@ -41,7 +42,7 @@ int main()
                 ptrAddressRead = readAndPrintPtrAddress(ptrAddressRead);
 
                 // dereference the ptr2int
-                readAndPrintVarInt((LPCVOID)ptrAddressRead, sizeof(int));
+                readAndPrintInt((LPCVOID)ptrAddressRead, sizeof(int));
                 break;
             }
             case 3: {
@@ -56,8 +57,17 @@ int main()
                 std::cout << "finalAddress = 0x" << std::hex << std::uppercase << finalAddress << std::endl;
 
                 // dereference the final pointer
-                readAndPrintVarInt((LPCVOID)finalAddress, sizeof(int));
+                readAndPrintInt((LPCVOID)finalAddress, sizeof(int));
                 break;
+            }
+            case 4: {
+                uintptr_t baseAddress;
+                std::cout << "Memory address of the string to read (in hexadecimal): 0x";
+                // std::cin >> std::hex >> baseAddress;  FIXME
+                std::cout << std::endl; // FIXME
+                baseAddress = 0xA6F21CF4C8; // FIXME
+
+                readAndPrintString((LPCVOID)baseAddress, sizeof(std::string));
             }
         }
 
@@ -79,7 +89,7 @@ int main()
 int printAndGetOptions() {
     int userOption;
     std::cout << std::endl << "Enter corresponding value to read: " << std::endl <<
-        "    (1) varInt\n    (2) ptr2int\n    (3) Pointer chain (ptr2ptr2)\n\n>> ";
+        "    (1) varInt\n    (2) ptr2int\n    (3) Pointer chain (ptr2ptr2)\n    (4) varString\n\n>> ";
     std::cin >> userOption;
     std::cout << std::endl;
     return userOption;
@@ -109,7 +119,7 @@ void getHandleFromPid() {
 }
 
 // reads memory of int and returns value (dereferences memory)
-int readAndPrintVarInt(LPCVOID baseAddress, SIZE_T readSize) {
+int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize) {
     int intBuffer = 0;
 
     BOOL intResult = ReadProcessMemory(
@@ -126,6 +136,26 @@ int readAndPrintVarInt(LPCVOID baseAddress, SIZE_T readSize) {
     std::cout << "Value at address = " << std::dec << intBuffer << std::endl << std::endl;
 
     return intBuffer;
+}
+
+// reads memory of string and returns value (dereferences memory)
+std::string readAndPrintString(LPCVOID baseAddress, SIZE_T readSize) {
+    std::string stringBuffer = "";
+
+    BOOL stringResult = ReadProcessMemory(
+        hProcess, // handle of process
+        baseAddress, // base address to read
+        &stringBuffer, // store content buffer
+        readSize, // bytes to read from process
+        lpNumberOfBytesRead // store bytes read buffer
+    );
+
+    readProcessMemoryError(stringResult);
+
+    // print varInt value
+    std::cout << "Value at address = " << std::dec << stringBuffer << std::endl << std::endl;
+
+    return stringBuffer;
 }
 
 // reads pointer, returns address pointer to
