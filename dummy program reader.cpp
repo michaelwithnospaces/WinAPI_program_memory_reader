@@ -5,7 +5,7 @@
 int printAndGetOptions();
 void getHandleFromPid();
 int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize);
-std::string readAndPrintString(LPCVOID baseAddress);
+void readAndPrintString(LPCVOID baseAddress, SIZE_T readSize);
 void readAndPrintCharArray(LPCVOID baseAddress, SIZE_T readSize);
 void readProcessMemoryError(BOOL value);
 uintptr_t readAndPrintPtrAddress(uintptr_t addressBuffer);
@@ -60,9 +60,11 @@ int main()
             case 4: {
                 uintptr_t baseAddress;
                 std::cout << "Memory address of the string to read (in hexadecimal): 0x";
-                std::cin >> std::hex >> baseAddress;
+                // std::cin >> std::hex >> baseAddress;
+                std::cout << std::endl; // DELME
+                baseAddress = 0x4A458FF4B8; // DELME
 
-                readAndPrintString((LPCVOID)baseAddress);
+                readAndPrintString((LPCVOID)baseAddress, sizeof(std::string));
                 break;
             }
             case 5: {
@@ -141,31 +143,27 @@ int readAndPrintInt(LPCVOID baseAddress, SIZE_T readSize) {
 }
 
 // reads memory of string and returns value (dereferences memory)
-std::string readAndPrintString(LPCVOID baseAddress) {
-    char stringBuffer[256];  // Adjust size as necessary
-    BOOL stringResult = ReadProcessMemory(
-        hProcess,
-        baseAddress,
-        stringBuffer,
-        sizeof(stringBuffer) - 1,  // Leave space for null-terminator
-        lpNumberOfBytesRead
-    );
+void readAndPrintString(LPCVOID baseAddress, SIZE_T readSize) {
+    char stringBuffer[256] = { 0 };
 
-    stringBuffer[sizeof(stringBuffer) - 1] = '\0';  // Ensure null-termination
+    BOOL stringResult = ReadProcessMemory(
+        hProcess, // handle of process
+        baseAddress, // base address to read
+        &stringBuffer, // store content buffer
+        readSize, // bytes to read from process
+        lpNumberOfBytesRead // store bytes read buffer
+    );
 
     readProcessMemoryError(stringResult);
 
-    std::cout << "String at address = " << stringBuffer << std::endl << std::endl;
 
-    return std::string(stringBuffer);
+    // print varInt value
+    std::cout << "Value at address = " << stringBuffer << std::endl << std::endl;
 }
-
 
 // reads memory of character array(dereferences memory)
 void readAndPrintCharArray(LPCVOID baseAddress, SIZE_T readSize) {
     char bufferArray[128] = "";
-
-    // Ensure we do not read more data than the buffer can hold
 
     BOOL charArrayResult = ReadProcessMemory(
         hProcess, // handle of process
